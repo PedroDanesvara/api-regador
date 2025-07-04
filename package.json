@@ -9,6 +9,7 @@
     "test": "jest",
     "test-deploy": "node test-deploy.js",
     "init-db": "node scripts/init-database.js",
+    "migrate-to-postgres": "node scripts/migrate-to-postgres.js",
     "create-device": "node scripts/create-device.js",
     "test-pump": "node scripts/test-pump.js"
   },
@@ -31,6 +32,7 @@
     "helmet": "^7.1.0",
     "joi": "^17.11.0",
     "moment": "^2.29.4",
+    "pg": "^8.16.3",
     "sqlite3": "^5.1.6"
   },
   "devDependencies": {

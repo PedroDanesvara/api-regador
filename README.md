@@ -13,7 +13,7 @@ API REST para gerenciamento de dispositivos IoT, sensores e bombas de água. Des
 ## Tecnologias
 - Node.js
 - Express.js
-- SQLite3
+- PostgreSQL
 - Moment.js
 - Nodemon (desenvolvimento)
 
@@ -36,14 +36,19 @@ vercel --prod
 
 ### Configuração no Vercel
 1. Conecte seu repositório GitHub
-2. Configure as variáveis de ambiente:
+2. Crie um banco PostgreSQL no Vercel Storage
+3. Configure as variáveis de ambiente:
    ```env
    NODE_ENV=production
    PORT=3000
    ALLOWED_ORIGINS=https://seu-dominio.vercel.app
-   DB_PATH=/tmp/monitoring.db
+   DB_HOST=db.vercel-storage.com
+   DB_PORT=5432
+   DB_NAME=verceldb
+   DB_USER=default
+   DB_PASSWORD=sua_senha_do_vercel
    ```
-3. Deploy automático!
+4. Deploy automático!
 
 📖 **Guia completo**: [DEPLOY_VERCEL.md](DEPLOY_VERCEL.md)
 
@@ -100,6 +105,7 @@ npm start
 - `npm start` - Inicia o servidor
 - `npm run dev` - Inicia o servidor em modo desenvolvimento
 - `npm run init-db` - Inicializa o banco de dados
+- `npm run migrate-to-postgres` - Migra dados do SQLite para PostgreSQL
 - `npm run create-device` - Cria um dispositivo de teste
 - `npm run test-pump` - Testa a funcionalidade da bomba
 
@@ -151,13 +157,17 @@ curl -X POST https://sua-api.vercel.app/api/sensors \
 - `GUIA_DADOS_BOMBA.md` - Documentação sobre dados da bomba
 - `TESTE_API.md` - Guia de testes da API
 - `DEPLOY_VERCEL.md` - Guia completo de deploy no Vercel
+- `MIGRACAO_POSTGRES.md` - Guia de migração para PostgreSQL
 
 ## ⚠️ Importante sobre o Banco de Dados
 
-No Vercel, o SQLite funciona em modo temporário (`/tmp/`). Para produção, considere:
-- **Vercel Postgres** (recomendado)
-- **PlanetScale** (MySQL)
-- **Supabase** (PostgreSQL)
+O projeto agora usa **PostgreSQL** como banco de dados principal. Para produção no Vercel:
+- **Vercel Postgres** (recomendado e configurado)
+- Backup automático incluído
+- Dados persistentes entre deploys
+- Melhor performance e escalabilidade
+
+📖 **Guia de migração**: [MIGRACAO_POSTGRES.md](MIGRACAO_POSTGRES.md)
 
 ## Contribuição
 
