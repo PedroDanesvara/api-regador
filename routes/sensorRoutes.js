@@ -116,9 +116,12 @@ router.get('/', validateRequest(querySchema, 'query'), async (req, res) => {
     }
 
     // Ordenação e paginação
+    // Garante que limit e offset sejam inteiros válidos
+    const parsedLimit = parseInt(limit) > 0 ? parseInt(limit) : 10;
+    const parsedOffset = parseInt(offset) >= 0 ? parseInt(offset) : 0;
     sql += ` ORDER BY sd.created_at ${order.toUpperCase()}`;
-    sql += ' LIMIT ? OFFSET ?';
-    params.push(limit, offset);
+    sql += ' LIMIT $1 OFFSET $2';
+    params.push(parsedLimit, parsedOffset);
 
     const data = await database.all(sql, params);
 
