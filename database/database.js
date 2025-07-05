@@ -103,17 +103,29 @@ class Database {
        END;
        $$ language 'plpgsql'`,
 
-      `DROP TRIGGER IF EXISTS update_devices_updated_at ON devices`,
-      `CREATE TRIGGER update_devices_updated_at
-       BEFORE UPDATE ON devices
-       FOR EACH ROW
-       EXECUTE FUNCTION update_updated_at_column()`,
+      // Trigger para devices
+      `DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'update_devices_updated_at') THEN
+          CREATE TRIGGER update_devices_updated_at
+          BEFORE UPDATE ON devices
+          FOR EACH ROW
+          EXECUTE FUNCTION update_updated_at_column();
+        END IF;
+      END;
+      $$;`,
 
-      `DROP TRIGGER IF EXISTS update_pump_data_updated_at ON pump_data`,
-      `CREATE TRIGGER update_pump_data_updated_at
-       BEFORE UPDATE ON pump_data
-       FOR EACH ROW
-       EXECUTE FUNCTION update_updated_at_column()`
+      // Trigger para pump_data
+      `DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'update_pump_data_updated_at') THEN
+          CREATE TRIGGER update_pump_data_updated_at
+          BEFORE UPDATE ON pump_data
+          FOR EACH ROW
+          EXECUTE FUNCTION update_updated_at_column();
+        END IF;
+      END;
+      $$;`
     ];
 
     const client = await this.pool.connect();
