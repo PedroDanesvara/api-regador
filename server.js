@@ -50,7 +50,7 @@ app.use('/api/devices', deviceRoutes);
 app.use('/api/pump', pumpRoutes);
 
 // Rota de health check
-app.get('/health', (req, res) => {
+app.get('/api/health', (req, res) => {
   res.json({
     status: 'OK',
     timestamp: new Date().toISOString(),
