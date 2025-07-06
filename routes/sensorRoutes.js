@@ -97,30 +97,30 @@ router.get('/', validateRequest(querySchema, 'query'), async (req, res) => {
       WHERE 1=1
     `;
     const params = [];
+    let paramIndex = 1;
 
     // Filtro por dispositivo (RF007)
     if (device_id) {
-      sql += ' AND sd.device_id = ?';
+      sql += ` AND sd.device_id = $${paramIndex++}`;
       params.push(device_id);
     }
 
     // Filtro por data
     if (start_date) {
-      sql += ' AND sd.created_at >= ?';
+      sql += ` AND sd.created_at >= $${paramIndex++}`;
       params.push(start_date);
     }
 
     if (end_date) {
-      sql += ' AND sd.created_at <= ?';
+      sql += ` AND sd.created_at <= $${paramIndex++}`;
       params.push(end_date);
     }
 
     // Ordenação e paginação
-    // Garante que limit e offset sejam inteiros válidos
     const parsedLimit = parseInt(limit) > 0 ? parseInt(limit) : 10;
     const parsedOffset = parseInt(offset) >= 0 ? parseInt(offset) : 0;
     sql += ` ORDER BY sd.created_at ${order.toUpperCase()}`;
-    sql += ' LIMIT $1 OFFSET $2';
+    sql += ` LIMIT $${paramIndex++} OFFSET $${paramIndex++}`;
     params.push(parsedLimit, parsedOffset);
 
     const data = await database.all(sql, params);
@@ -128,19 +128,17 @@ router.get('/', validateRequest(querySchema, 'query'), async (req, res) => {
     // Contar total de registros para paginação
     let countSql = 'SELECT COUNT(*) as total FROM sensor_data WHERE 1=1';
     const countParams = [];
-    
+    let countIndex = 1;
     if (device_id) {
-      countSql += ' AND device_id = ?';
+      countSql += ` AND device_id = $${countIndex++}`;
       countParams.push(device_id);
     }
-
     if (start_date) {
-      countSql += ' AND created_at >= ?';
+      countSql += ` AND created_at >= $${countIndex++}`;
       countParams.push(start_date);
     }
-
     if (end_date) {
-      countSql += ' AND created_at <= ?';
+      countSql += ` AND created_at <= $${countIndex++}`;
       countParams.push(end_date);
     }
 
