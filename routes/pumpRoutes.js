@@ -85,13 +85,21 @@ router.get('/:device_id/status', async (req, res) => {
       WHERE device_id = $1
     `, [device_id]);
 
+    // Calcular duration_seconds em tempo real se a bomba estiver ativa
+    let duration_seconds = pumpStatus.duration_seconds;
+    if (pumpStatus.status === 'active' && pumpStatus.updated_at) {
+      const startTime = new Date(pumpStatus.updated_at);
+      const now = new Date();
+      duration_seconds = Math.floor((now - startTime) / 1000);
+    }
+
     res.json({
       success: true,
       data: {
         device_id,
         is_active: pumpStatus.status === 'active',
         status: pumpStatus.status,
-        duration_seconds: pumpStatus.duration_seconds,
+        duration_seconds,
         reason: pumpStatus.reason,
         triggered_by: pumpStatus.triggered_by,
         last_updated: pumpStatus.updated_at,
