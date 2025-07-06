@@ -27,7 +27,7 @@ router.get('/:device_id/status', async (req, res) => {
 
     // Verificar se o dispositivo existe
     const device = await database.get(
-      'SELECT * FROM devices WHERE device_id = ?',
+      'SELECT * FROM devices WHERE device_id = $1',
       [device_id]
     );
 
@@ -41,7 +41,7 @@ router.get('/:device_id/status', async (req, res) => {
     // Buscar status atual da bomba
     const pumpStatus = await database.get(`
       SELECT * FROM pump_data 
-      WHERE device_id = ? 
+      WHERE device_id = $1 
       ORDER BY updated_at DESC 
       LIMIT 1
     `, [device_id]);
@@ -50,11 +50,11 @@ router.get('/:device_id/status', async (req, res) => {
     if (!pumpStatus) {
       const result = await database.run(`
         INSERT INTO pump_data (device_id, status, duration_seconds, reason, triggered_by)
-        VALUES (?, 'inactive', 0, 'Sistema inicializado', 'automatic')
+        VALUES ($1, 'inactive', 0, 'Sistema inicializado', 'automatic')
       `, [device_id]);
 
       const newStatus = await database.get(
-        'SELECT * FROM pump_data WHERE id = ?',
+        'SELECT * FROM pump_data WHERE id = $1',
         [result.id]
       );
 
@@ -82,7 +82,7 @@ router.get('/:device_id/status', async (req, res) => {
         MAX(CASE WHEN action = 'activated' THEN created_at END) as last_activated,
         MAX(CASE WHEN action = 'deactivated' THEN created_at END) as last_deactivated
       FROM pump_history 
-      WHERE device_id = ?
+      WHERE device_id = $1
     `, [device_id]);
 
     res.json({
@@ -118,7 +118,7 @@ router.post('/:device_id/control', validateRequest(pumpControlSchema), async (re
 
     // Verificar se o dispositivo existe
     const device = await database.get(
-      'SELECT * FROM devices WHERE device_id = ?',
+      'SELECT * FROM devices WHERE device_id = $1',
       [device_id]
     );
 
@@ -132,7 +132,7 @@ router.post('/:device_id/control', validateRequest(pumpControlSchema), async (re
     // Buscar status atual da bomba
     const currentStatus = await database.get(`
       SELECT * FROM pump_data 
-      WHERE device_id = ? 
+      WHERE device_id = $1 
       ORDER BY updated_at DESC 
       LIMIT 1
     `, [device_id]);
@@ -160,26 +160,26 @@ router.post('/:device_id/control', validateRequest(pumpControlSchema), async (re
     if (currentStatus) {
       await database.run(`
         UPDATE pump_data 
-        SET status = ?, duration_seconds = ?, reason = ?, triggered_by = ?, updated_at = CURRENT_TIMESTAMP
-        WHERE id = ?
+        SET status = $1, duration_seconds = $2, reason = $3, triggered_by = $4, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $5
       `, [newStatus, durationSeconds, reason || `Bomba ${actionType}`, triggered_by, currentStatus.id]);
     } else {
       await database.run(`
         INSERT INTO pump_data (device_id, status, duration_seconds, reason, triggered_by)
-        VALUES (?, ?, ?, ?, ?)
+        VALUES ($1, $2, $3, $4, $5)
       `, [device_id, newStatus, durationSeconds, reason || `Bomba ${actionType}`, triggered_by]);
     }
 
     // Registrar no histórico
     await database.run(`
       INSERT INTO pump_history (device_id, action, duration_seconds, reason, triggered_by)
-      VALUES (?, ?, ?, ?, ?)
+      VALUES ($1, $2, $3, $4, $5)
     `, [device_id, actionType, durationSeconds, reason || `Bomba ${actionType}`, triggered_by]);
 
     // Buscar status atualizado
     const updatedStatus = await database.get(`
       SELECT * FROM pump_data 
-      WHERE device_id = ? 
+      WHERE device_id = $1 
       ORDER BY updated_at DESC 
       LIMIT 1
     `, [device_id]);
@@ -215,7 +215,7 @@ router.get('/:device_id/history', async (req, res) => {
 
     // Verificar se o dispositivo existe
     const device = await database.get(
-      'SELECT * FROM devices WHERE device_id = ?',
+      'SELECT * FROM devices WHERE device_id = $1',
       [device_id]
     );
 
@@ -236,14 +236,14 @@ router.get('/:device_id/history', async (req, res) => {
         triggered_by,
         created_at
       FROM pump_history 
-      WHERE device_id = ?
+      WHERE device_id = $1
       ORDER BY created_at DESC
-      LIMIT ? OFFSET ?
+      LIMIT $2 OFFSET $3
     `, [device_id, parseInt(limit), parseInt(offset)]);
 
     // Contar total de registros
     const total = await database.get(`
-      SELECT COUNT(*) as count FROM pump_history WHERE device_id = ?
+      SELECT COUNT(*) as count FROM pump_history WHERE device_id = $1
     `, [device_id]);
 
     res.json({
@@ -273,7 +273,7 @@ router.get('/:device_id/stats', async (req, res) => {
 
     // Verificar se o dispositivo existe
     const device = await database.get(
-      'SELECT * FROM devices WHERE device_id = ?',
+      'SELECT * FROM devices WHERE device_id = $1',
       [device_id]
     );
 
@@ -299,7 +299,7 @@ router.get('/:device_id/stats', async (req, res) => {
         COUNT(CASE WHEN triggered_by = 'automatic' THEN 1 END) as automatic_actions,
         COUNT(CASE WHEN triggered_by = 'schedule' THEN 1 END) as scheduled_actions
       FROM pump_history 
-      WHERE device_id = ?
+      WHERE device_id = $1
     `, [device_id]);
 
     // Buscar dados das últimas 24 horas
@@ -311,7 +311,7 @@ router.get('/:device_id/stats', async (req, res) => {
         triggered_by,
         created_at
       FROM pump_history 
-      WHERE device_id = ? 
+      WHERE device_id = $1 
       AND created_at >= datetime('now', '-1 day')
       ORDER BY created_at DESC
     `, [device_id]);
