@@ -30,13 +30,13 @@ router.post('/', validateRequest(sensorDataSchema), async (req, res) => {
 
     // Verificar se o dispositivo existe, se não, criar automaticamente
     const device = await database.get(
-      'SELECT * FROM devices WHERE device_id = ?',
+      'SELECT * FROM devices WHERE device_id = $1',
       [device_id]
     );
 
     if (!device) {
       await database.run(
-        'INSERT INTO devices (device_id, name, location) VALUES (?, ?, ?)',
+        'INSERT INTO devices (device_id, name, location) VALUES ($1, $2, $3)',
         [device_id, `ESP32_${device_id}`, 'Localização não definida']
       );
     }
@@ -44,7 +44,7 @@ router.post('/', validateRequest(sensorDataSchema), async (req, res) => {
     // Inserir dados do sensor
     const result = await database.run(
       `INSERT INTO sensor_data (device_id, temperatura, umidade_solo, timestamp) 
-       VALUES (?, ?, ?, ?)`,
+       VALUES ($1, $2, $3, $4)`,
       [device_id, temperatura, umidade_solo, timestamp]
     );
 
@@ -182,7 +182,7 @@ router.get('/:id', async (req, res) => {
         d.location as device_location
        FROM sensor_data sd
        LEFT JOIN devices d ON sd.device_id = d.device_id
-       WHERE sd.id = ?`,
+       WHERE sd.id = $1`,
       [id]
     );
 
@@ -215,7 +215,7 @@ router.patch('/:id', validateRequest(sensorDataSchema), async (req, res) => {
 
     // Verificar se o registro existe
     const existing = await database.get(
-      'SELECT * FROM sensor_data WHERE id = ?',
+      'SELECT * FROM sensor_data WHERE id = $1',
       [id]
     );
 
@@ -229,14 +229,14 @@ router.patch('/:id', validateRequest(sensorDataSchema), async (req, res) => {
     // Atualizar dados
     await database.run(
       `UPDATE sensor_data 
-       SET temperatura = ?, umidade_solo = ?, timestamp = ?, device_id = ?
-       WHERE id = ?`,
+       SET temperatura = $1, umidade_solo = $2, timestamp = $3, device_id = $4
+       WHERE id = $5`,
       [temperatura, umidade_solo, timestamp, device_id, id]
     );
 
     // Buscar dados atualizados
     const updated = await database.get(
-      'SELECT * FROM sensor_data WHERE id = ?',
+      'SELECT * FROM sensor_data WHERE id = $1',
       [id]
     );
 
@@ -262,7 +262,7 @@ router.delete('/:id', async (req, res) => {
 
     // Verificar se o registro existe
     const existing = await database.get(
-      'SELECT * FROM sensor_data WHERE id = ?',
+      'SELECT * FROM sensor_data WHERE id = $1',
       [id]
     );
 
@@ -274,7 +274,7 @@ router.delete('/:id', async (req, res) => {
     }
 
     // Remover dados
-    await database.run('DELETE FROM sensor_data WHERE id = ?', [id]);
+    await database.run('DELETE FROM sensor_data WHERE id = $1', [id]);
 
     res.json({
       success: true,
@@ -311,7 +311,7 @@ router.get('/stats/summary', async (req, res) => {
     const params = [];
 
     if (device_id) {
-      sql += ' WHERE device_id = ?';
+      sql += ' WHERE device_id = $1';
       params.push(device_id);
     }
 
