@@ -54,7 +54,6 @@ class Database {
       `CREATE TABLE IF NOT EXISTS sensor_data (
         id SERIAL PRIMARY KEY,
         device_id VARCHAR(255) NOT NULL,
-        temperatura DECIMAL(5,2),
         umidade_solo INTEGER,
         timestamp BIGINT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

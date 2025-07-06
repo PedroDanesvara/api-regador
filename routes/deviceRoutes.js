@@ -239,9 +239,6 @@ router.get('/:device_id/stats', async (req, res) => {
     const stats = await database.get(`
       SELECT 
         COUNT(*) as total_readings,
-        AVG(temperatura) as avg_temperatura,
-        MIN(temperatura) as min_temperatura,
-        MAX(temperatura) as max_temperatura,
         AVG(umidade_solo) as avg_umidade,
         MIN(umidade_solo) as min_umidade,
         MAX(umidade_solo) as max_umidade,
@@ -254,7 +251,6 @@ router.get('/:device_id/stats', async (req, res) => {
     // Buscar dados das últimas 24 horas
     const last24h = await database.all(`
       SELECT 
-        temperatura,
         umidade_solo,
         created_at
       FROM sensor_data 

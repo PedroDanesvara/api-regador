@@ -1,7 +1,7 @@
 {
   "name": "esp32-monitoring-api",
   "version": "1.0.0",
-  "description": "API para receber dados do ESP32 de monitoramento de temperatura e umidade",
+  "description": "API para receber dados do ESP32 de monitoramento de umidade do solo",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -11,14 +11,14 @@
     "init-db": "node scripts/init-database.js",
     "migrate-to-postgres": "node scripts/migrate-to-postgres.js",
     "create-device": "node scripts/create-device.js",
-    "test-pump": "node scripts/test-pump.js"
+    "test-pump": "node scripts/test-pump.js",
+    "remove-temperatura": "node scripts/remove-temperatura.js"
   },
   "keywords": [
     "esp32",
     "iot",
     "monitoring",
     "api",
-    "temperature",
     "soil-moisture"
   ],
   "author": "Alex",

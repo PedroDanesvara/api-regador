@@ -7,7 +7,6 @@ const router = express.Router();
 
 // Schema de validação para dados do sensor
 const sensorDataSchema = Joi.object({
-  temperatura: Joi.number().min(-50).max(100).required(),
   umidade_solo: Joi.number().integer().min(0).max(100).required(),
   timestamp: Joi.number().integer().min(0).required(),
   device_id: Joi.string().min(1).max(50).required()
@@ -26,7 +25,7 @@ const querySchema = Joi.object({
 // RF005: POST - Receber dados do ESP32
 router.post('/', validateRequest(sensorDataSchema), async (req, res) => {
   try {
-    const { temperatura, umidade_solo, timestamp, device_id } = req.body;
+    const { umidade_solo, timestamp, device_id } = req.body;
 
     // Verificar se o dispositivo existe, se não, criar automaticamente
     const device = await database.get(
@@ -43,9 +42,9 @@ router.post('/', validateRequest(sensorDataSchema), async (req, res) => {
 
     // Inserir dados do sensor
     const result = await database.run(
-      `INSERT INTO sensor_data (device_id, temperatura, umidade_solo, timestamp) 
-       VALUES ($1, $2, $3, $4)`,
-      [device_id, temperatura, umidade_solo, timestamp]
+      `INSERT INTO sensor_data (device_id, umidade_solo, timestamp) 
+       VALUES ($1, $2, $3)`,
+      [device_id, umidade_solo, timestamp]
     );
 
     res.status(201).json({
@@ -54,7 +53,6 @@ router.post('/', validateRequest(sensorDataSchema), async (req, res) => {
       data: {
         id: result.id,
         device_id,
-        temperatura,
         umidade_solo,
         timestamp,
         created_at: new Date().toISOString()
@@ -86,7 +84,6 @@ router.get('/', validateRequest(querySchema, 'query'), async (req, res) => {
       SELECT 
         sd.id,
         sd.device_id,
-        sd.temperatura,
         sd.umidade_solo,
         sd.timestamp,
         sd.created_at,
@@ -174,7 +171,6 @@ router.get('/:id', async (req, res) => {
       `SELECT 
         sd.id,
         sd.device_id,
-        sd.temperatura,
         sd.umidade_solo,
         sd.timestamp,
         sd.created_at,
@@ -211,7 +207,7 @@ router.get('/:id', async (req, res) => {
 router.patch('/:id', validateRequest(sensorDataSchema), async (req, res) => {
   try {
     const { id } = req.params;
-    const { temperatura, umidade_solo, timestamp, device_id } = req.body;
+    const { umidade_solo, timestamp, device_id } = req.body;
 
     // Verificar se o registro existe
     const existing = await database.get(
@@ -229,9 +225,9 @@ router.patch('/:id', validateRequest(sensorDataSchema), async (req, res) => {
     // Atualizar dados
     await database.run(
       `UPDATE sensor_data 
-       SET temperatura = $1, umidade_solo = $2, timestamp = $3, device_id = $4
-       WHERE id = $5`,
-      [temperatura, umidade_solo, timestamp, device_id, id]
+       SET umidade_solo = $1, timestamp = $2, device_id = $3
+       WHERE id = $4`,
+      [umidade_solo, timestamp, device_id, id]
     );
 
     // Buscar dados atualizados
@@ -298,9 +294,6 @@ router.get('/stats/summary', async (req, res) => {
     let sql = `
       SELECT 
         COUNT(*) as total_readings,
-        AVG(temperatura) as avg_temperatura,
-        MIN(temperatura) as min_temperatura,
-        MAX(temperatura) as max_temperatura,
         AVG(umidade_solo) as avg_umidade,
         MIN(umidade_solo) as min_umidade,
         MAX(umidade_solo) as max_umidade,

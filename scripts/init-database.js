@@ -21,7 +21,7 @@ async function initDatabase() {
         device_id: 'ESP32_001',
         name: 'ESP32 Sala de Estar',
         location: 'Sala de estar - 1º andar',
-        description: 'Monitoramento de temperatura e umidade da sala'
+        description: 'Monitoramento de umidade da sala'
       },
       {
         device_id: 'ESP32_002',
@@ -50,25 +50,21 @@ async function initDatabase() {
     const sampleData = [
       {
         device_id: 'ESP32_001',
-        temperatura: 25.5,
         umidade_solo: 65,
         timestamp: now - 300000 // 5 minutos atrás
       },
       {
         device_id: 'ESP32_001',
-        temperatura: 26.0,
         umidade_solo: 62,
         timestamp: now - 600000 // 10 minutos atrás
       },
       {
         device_id: 'ESP32_002',
-        temperatura: 28.5,
         umidade_solo: 45,
         timestamp: now - 300000 // 5 minutos atrás
       },
       {
         device_id: 'ESP32_002',
-        temperatura: 27.8,
         umidade_solo: 48,
         timestamp: now - 600000 // 10 minutos atrás
       }
@@ -77,8 +73,8 @@ async function initDatabase() {
     for (const data of sampleData) {
       try {
         await database.run(
-          'INSERT INTO sensor_data (device_id, temperatura, umidade_solo, timestamp) VALUES (?, ?, ?, ?)',
-          [data.device_id, data.temperatura, data.umidade_solo, data.timestamp]
+          'INSERT INTO sensor_data (device_id, umidade_solo, timestamp) VALUES (?, ?, ?)',
+          [data.device_id, data.umidade_solo, data.timestamp]
         );
         console.log(`✅ Dados de exemplo criados para ${data.device_id}`);
       } catch (error) {

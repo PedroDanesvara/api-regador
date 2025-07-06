@@ -49,8 +49,8 @@ async function migrateData() {
     const sensorData = await getSqliteData(sqliteDb, 'SELECT * FROM sensor_data');
     for (const data of sensorData) {
       await insertPostgresData(
-        'INSERT INTO sensor_data (device_id, temperatura, umidade_solo, timestamp, created_at) VALUES ($1, $2, $3, $4, $5)',
-        [data.device_id, data.temperatura, data.umidade_solo, data.timestamp, data.created_at]
+        'INSERT INTO sensor_data (device_id, umidade_solo, timestamp, created_at) VALUES ($1, $2, $3, $4)',
+        [data.device_id, data.umidade_solo, data.timestamp, data.created_at]
       );
     }
     console.log(`✅ ${sensorData.length} registros de sensores migrados`);

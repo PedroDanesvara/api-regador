@@ -45,7 +45,6 @@ async function testAPI() {
     console.log('5️⃣ Enviando dados do sensor...');
     const sensorData = {
       device_id: TEST_DEVICE_ID,
-      temperatura: 25.5 + Math.random() * 5,
       umidade_solo: 60 + Math.floor(Math.random() * 20),
       timestamp: Date.now()
     };
