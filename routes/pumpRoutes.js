@@ -2,6 +2,7 @@ const express = require('express');
 const Joi = require('joi');
 const database = require('../database/database');
 const { validateRequest } = require('../middleware/validation');
+const moment = require('moment-timezone');
 
 const router = express.Router();
 
@@ -87,6 +88,9 @@ router.get('/:device_id/status', async (req, res) => {
 
     // Calcular duration_seconds em tempo real se a bomba estiver ativa
     let duration_seconds = pumpStatus.duration_seconds;
+    let last_updated = pumpStatus.updated_at ? moment.utc(pumpStatus.updated_at).tz('America/Sao_Paulo').format() : null;
+    let last_activated = stats.last_activated ? moment.utc(stats.last_activated).tz('America/Sao_Paulo').format() : null;
+    let last_deactivated = stats.last_deactivated ? moment.utc(stats.last_deactivated).tz('America/Sao_Paulo').format() : null;
     if (pumpStatus.status === 'active' && pumpStatus.updated_at) {
       const startTime = new Date(pumpStatus.updated_at);
       const now = new Date();
@@ -102,10 +106,10 @@ router.get('/:device_id/status', async (req, res) => {
         duration_seconds,
         reason: pumpStatus.reason,
         triggered_by: pumpStatus.triggered_by,
-        last_updated: pumpStatus.updated_at,
+        last_updated,
         total_activations: stats.total_activations || 0,
-        last_activated: stats.last_activated,
-        last_deactivated: stats.last_deactivated
+        last_activated,
+        last_deactivated
       }
     });
 
