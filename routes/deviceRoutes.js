@@ -54,7 +54,7 @@ router.get('/:device_id', async (req, res) => {
         MIN(sd.created_at) as first_reading
       FROM devices d
       LEFT JOIN sensor_data sd ON d.device_id = sd.device_id
-      WHERE d.device_id = ?
+      WHERE d.device_id = $1
       GROUP BY d.id
     `, [device_id]);
 
@@ -86,7 +86,7 @@ router.post('/', validateRequest(deviceSchema), async (req, res) => {
 
     // Verificar se o dispositivo já existe
     const existing = await database.get(
-      'SELECT * FROM devices WHERE device_id = ?',
+      'SELECT * FROM devices WHERE device_id = $1',
       [device_id]
     );
 
@@ -100,13 +100,13 @@ router.post('/', validateRequest(deviceSchema), async (req, res) => {
     // Criar novo dispositivo
     const result = await database.run(
       `INSERT INTO devices (device_id, name, location, description) 
-       VALUES (?, ?, ?, ?)`,
+       VALUES ($1, $2, $3, $4)`,
       [device_id, name, location, description]
     );
 
     // Buscar dispositivo criado
     const newDevice = await database.get(
-      'SELECT * FROM devices WHERE id = ?',
+      'SELECT * FROM devices WHERE id = $1',
       [result.id]
     );
 
@@ -133,7 +133,7 @@ router.patch('/:device_id', validateRequest(deviceSchema), async (req, res) => {
 
     // Verificar se o dispositivo existe
     const existing = await database.get(
-      'SELECT * FROM devices WHERE device_id = ?',
+      'SELECT * FROM devices WHERE device_id = $1',
       [device_id]
     );
 
@@ -147,14 +147,14 @@ router.patch('/:device_id', validateRequest(deviceSchema), async (req, res) => {
     // Atualizar dispositivo
     await database.run(
       `UPDATE devices 
-       SET name = ?, location = ?, description = ?, updated_at = CURRENT_TIMESTAMP
-       WHERE device_id = ?`,
+       SET name = $1, location = $2, description = $3, updated_at = CURRENT_TIMESTAMP
+       WHERE device_id = $4`,
       [name, location, description, device_id]
     );
 
     // Buscar dispositivo atualizado
     const updated = await database.get(
-      'SELECT * FROM devices WHERE device_id = ?',
+      'SELECT * FROM devices WHERE device_id = $1',
       [device_id]
     );
 
@@ -180,7 +180,7 @@ router.delete('/:device_id', async (req, res) => {
 
     // Verificar se o dispositivo existe
     const existing = await database.get(
-      'SELECT * FROM devices WHERE device_id = ?',
+      'SELECT * FROM devices WHERE device_id = $1',
       [device_id]
     );
 
@@ -193,13 +193,13 @@ router.delete('/:device_id', async (req, res) => {
 
     // Remover dados do sensor primeiro (devido à foreign key)
     await database.run(
-      'DELETE FROM sensor_data WHERE device_id = ?',
+      'DELETE FROM sensor_data WHERE device_id = $1',
       [device_id]
     );
 
     // Remover dispositivo
     await database.run(
-      'DELETE FROM devices WHERE device_id = ?',
+      'DELETE FROM devices WHERE device_id = $1',
       [device_id]
     );
 
@@ -224,7 +224,7 @@ router.get('/:device_id/stats', async (req, res) => {
 
     // Verificar se o dispositivo existe
     const device = await database.get(
-      'SELECT * FROM devices WHERE device_id = ?',
+      'SELECT * FROM devices WHERE device_id = $1',
       [device_id]
     );
 
@@ -248,7 +248,7 @@ router.get('/:device_id/stats', async (req, res) => {
         MIN(created_at) as first_reading,
         MAX(created_at) as last_reading
       FROM sensor_data 
-      WHERE device_id = ?
+      WHERE device_id = $1
     `, [device_id]);
 
     // Buscar dados das últimas 24 horas
@@ -258,8 +258,8 @@ router.get('/:device_id/stats', async (req, res) => {
         umidade_solo,
         created_at
       FROM sensor_data 
-      WHERE device_id = ? 
-      AND created_at >= datetime('now', '-1 day')
+      WHERE device_id = $1 
+      AND created_at >= NOW() - INTERVAL '1 day'
       ORDER BY created_at DESC
     `, [device_id]);
 

@@ -3,7 +3,7 @@
 const readline = require('readline');
 const axios = require('axios');
 
-const API_BASE_URL = 'http://localhost:3000/api';
+const API_BASE_URL = 'https://api-regador.vercel.app/api';
 
 const rl = readline.createInterface({
   input: process.stdin,
